@@ -5,6 +5,7 @@ import requests
 from urllib import urlencode
 import json
 from musician import musician
+import hashlib
 
 cookies = {"os": "osx"}
 header = {
@@ -59,8 +60,27 @@ def create_list(name, userId):
         print(resp.text)
         print("啥也没干")
 
+#登录(密码MD5) 
+#emember=true&https=true&username=zhourongfaith%40163.com
+def login(name,password):
+    url = "https://music.163.com/api/login"
+    m2 = hashlib.md5()   
+    m2.update(password)   
+    encodePass =  m2.hexdigest()   
+    params = {
+        "username":name,
+        "password":encodePass,
+        "type":"0",
+        "remember":"true",
+        "https":"true"
+    }
+    resp = requests.post(url,urlencode(params),cookies=cookies,headers = header)
+    print resp.json()
+
+
 
 if __name__ == '__main__':
     #uid = get_user_id_by_name("zhang")
     #create_list("3333", uid)
-    delete_list(89898025)
+    #delete_list(89898025)
+    login("zhourongfaith@163.com","wangyizr77889")
