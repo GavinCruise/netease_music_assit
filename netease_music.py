@@ -8,7 +8,6 @@ import urllib
 import json
 import random
 import os
-import sys
 
 #set cookie
 cookie_opener = urllib2.build_opener()
@@ -90,8 +89,9 @@ def search_song_by_name(name):
     params = urllib.urlencode(params)
     resp = urllib2.urlopen(search_url, params)
     print(search_url)
-    print(resp)
+
     resp_js = json.loads(resp.read())
+    print(json.dumps(resp_js,ensure_ascii=False))
     if resp_js['code'] == 200 and resp_js['result']['songCount'] > 0:
         result = resp_js['result']
         song_id = result['songs'][0]['id']
@@ -190,4 +190,6 @@ def download_album_by_search(name, folder='.'):
         save_song_to_disk(song, folder)
 
 if __name__ == '__main__':
-    print get_artist_albums({"id": 893259})
+    #print get_artist_albums({"id": 893259})
+    #download_song_by_search('晴日共剪窗','/Users/book/Desktop')
+    search_song_by_name('晴日共剪窗')

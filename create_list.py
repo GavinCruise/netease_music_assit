@@ -9,10 +9,11 @@ import hashlib
 
 cookies = {"os": "osx"}
 header = {
-            "Host": "music.163.com", "Content-Type": "application/x-www-form-urlencoded",
-            "Origin": "orpheus://orpheus",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.78.2 (KHTML, like Gecko)"
-            }
+    "Host": "music.163.com", "Content-Type": "application/x-www-form-urlencoded",
+    "Origin": "orpheus://orpheus",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.78.2 (KHTML, like Gecko)"
+}
+
 
 def get_user_id_by_name(name):
     url = "http://music.163.com/api/search/pc"
@@ -36,21 +37,20 @@ def get_user_id_by_name(name):
     print(m.userId)
     return (m.userId)
 
+
 # 需要登录.
-def delete_list(listId):
+def delete_list(listId,m):
     url = "http://music.163.com/api/playlist/delete"
     params = {"id": listId, "pid": listId}
-    
     resp = requests.post(url, params, cookies=cookies, headers=header)
     if resp.status_code == 200:
         print("歌单删除成功...")
 
 
 # 需要登录.
-def create_list(name, userId):
+def create_list(name, m):
     url = "http://music.163.com/api/playlist/create"
-    params = {"name": name, "uid": userId}
-    print(urlencode(params))
+    params = {"name": name, "uid": m.userId}
     resp = requests.post(url, urlencode(params), cookies=cookies, headers=header)
     result = resp.json()
     if result["code"] == 200:
@@ -60,27 +60,41 @@ def create_list(name, userId):
         print(resp.text)
         print("啥也没干")
 
-#登录(密码MD5) 
-#emember=true&https=true&username=zhourongfaith%40163.com
-def login(name,password):
+
+# 登录(密码MD5)
+# emember=true&https=true&username=zhourongfaith%40163.com
+def login(name, password):
     url = "https://music.163.com/api/login"
-    m2 = hashlib.md5()   
-    m2.update(password)   
-    encodePass =  m2.hexdigest()   
+    m2 = hashlib.md5()
+    m2.update(password)
+    encodePass = m2.hexdigest()
+    m = musician()
     params = {
-        "username":name,
-        "password":encodePass,
-        "type":"0",
-        "remember":"true",
-        "https":"true"
+        "username": name,
+        "password": encodePass,
+        "type": "0",
+        "remember": "true",
+        "https": "true"
     }
-    resp = requests.post(url,urlencode(params),cookies=cookies,headers = header)
-    print resp.json()
+    resp = requests.post(url, urlencode(params), cookies=cookies, headers=header)
+    account = resp.json()['account']
+    m.userId = account['id']
+    m.cookie = resp.cookies
+    cookies['MUSIC_U'] = resp.cookies['MUSIC_U']
+    print json.dumps(resp.json(), ensure_ascii=False)
+    print resp.cookies['MUSIC_U']
+    return m
+
+def add_song_to_list(listid,songs):
+    url="http://music.163.com/api/playlist/manipulate/tracks"
+    params={
+        "trackIds":songs,
+        "pid":listid,
+        "op":"add"
+    }
 
 
 
 if __name__ == '__main__':
-    #uid = get_user_id_by_name("zhang")
-    #create_list("3333", uid)
-    #delete_list(89898025)
-    login("zhourongfaith@163.com","wangyizr77889")
+    create_list("23333", login("clay169@163.com", "p111111"))
+
