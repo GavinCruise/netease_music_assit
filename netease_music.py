@@ -8,12 +8,14 @@ import urllib
 import json
 import random
 import os
+import requests
 
 #set cookie
 cookie_opener = urllib2.build_opener()
 cookie_opener.addheaders.append(('Cookie', 'appver=2.0.2'))
 cookie_opener.addheaders.append(('Referer', 'http://music.163.com'))
 urllib2.install_opener(cookie_opener)
+
 
 def encrypted_id(id):
     byte1 = bytearray('3go8&$8*3*3h0k(2)2')
@@ -27,6 +29,7 @@ def encrypted_id(id):
     result = result.replace('/', '_')
     result = result.replace('+', '-')
     return result
+
 
 def search_artist_by_name(name):
     search_url = 'http://music.163.com/api/search/get'
@@ -45,6 +48,7 @@ def search_artist_by_name(name):
         return artists['result']['artists'][0]
     else:
         return None
+
 
 def search_album_by_name(name):
     search_url = 'http://music.163.com/api/search/get'
@@ -74,7 +78,6 @@ def search_album_by_name(name):
         return result['albums'][album_id]
     else:
         return None
-
 
 
 def search_song_by_name(name):
@@ -108,9 +111,11 @@ def search_song_by_name(name):
         detail_url = 'http://music.163.com/api/song/detail?ids=[%d]' % song_id
         resp = urllib2.urlopen(detail_url)
         song_js = json.loads(resp.read())
+        print(json.dumps(song_js, ensure_ascii=False))
         return song_js['songs'][0]
     else:
         return None
+
 
 def get_artist_albums(artist):
     albums = []
@@ -140,11 +145,14 @@ def get_artist_albums2(artist):
         offset += 50
     return albums
 
+
 def get_album_songs(album):
     url = 'http://music.163.com/api/album/%d/' % album['id']
     resp = urllib2.urlopen(url)
+    print resp
     songs = json.loads(resp.read())
     return songs['album']['songs']
+
 
 def save_song_to_disk(song, folder):
     name = song['name']
@@ -161,6 +169,7 @@ def save_song_to_disk(song, folder):
     f = open(fpath, 'wb')
     f.write(data)
     f.close()
+
 
 def download_song_by_search(name, folder='.'):
     song = search_song_by_name(name)
@@ -189,7 +198,40 @@ def download_album_by_search(name, folder='.'):
     for song in songs:
         save_song_to_disk(song, folder)
 
+
+# lyric http://music.163.com/api/song/lyric?os=osx&id= &lv=-1&kv=-1&tv=-1
+def song_lyric(music_id):
+    action = 'http://music.163.com/api/song/lyric?os=osx&id={}&lv=-1&kv=-1&tv=-1'.format(  # NOQA
+        music_id)
+    try:
+        resp = urllib2.urlopen(action)
+        data = json.load(resp)
+        if 'lrc' in data and data['lrc']['lyric'] is not None:
+            lyric_info = data['lrc']['lyric']
+        else:
+            lyric_info = '未找到歌词'
+        return lyric_info
+    except requests.exceptions.RequestException as e:
+        print(e)
+        return []
+
+
+def song_tlyric(music_id):
+    action = 'http://music.163.com/api/song/lyric?os=osx&id={}&lv=-1&kv=-1&tv=-1'.format(  # NOQA
+        music_id)
+    try:
+        data = json.loads(urllib2.urlopen(action))
+        if 'tlyric' in data and data['tlyric'].get('lyric') is not None:
+            lyric_info = data['tlyric']['lyric'][1:]
+        else:
+            lyric_info = '未找到歌词翻译'
+        return lyric_info
+    except requests.exceptions.RequestException as e:
+        print(e)
+        return []
+
 if __name__ == '__main__':
-    #print get_artist_albums({"id": 893259})
-    #download_song_by_search('晴日共剪窗','/Users/book/Desktop')
-    search_song_by_name('晴日共剪窗')
+    # print get_artist_albums({"id": 893259})
+    # download_album_by_search('AKB48','/Users/book/Desktop/TS')
+    # search_song_by_name('AKB48')
+    print(song_lyric('30431375'))
