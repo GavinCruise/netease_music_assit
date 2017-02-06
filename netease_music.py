@@ -9,7 +9,10 @@ import json
 import random
 import os
 import requests
+import sys
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
 #set cookie
 cookie_opener = urllib2.build_opener()
 cookie_opener.addheaders.append(('Cookie', 'appver=2.0.2'))
@@ -91,23 +94,22 @@ def search_song_by_name(name):
     }
     params = urllib.urlencode(params)
     resp = urllib2.urlopen(search_url, params)
-    print(search_url)
 
     resp_js = json.loads(resp.read())
     print(json.dumps(resp_js,ensure_ascii=False))
     if resp_js['code'] == 200 and resp_js['result']['songCount'] > 0:
         result = resp_js['result']
         song_id = result['songs'][0]['id']
-        if result['songCount'] > 1:
-            for i in range(len(result['songs'])):
-                song = result['songs'][i]
-                print '[%2d]song:%s\tartist:%s\talbum:%s' % (i+1,song['name'], song['artists'][0]['name'], song['album']['name'])
-            select_i = int(raw_input('Select One:'))
-            if select_i < 1 or select_i > len(result['songs']):
-                print 'error select'
-                return None
-            else:
-                song_id = result['songs'][select_i-1]['id']
+        # if result['songCount'] > 1:
+        #     for i in range(len(result['songs'])):
+        #         song = result['songs'][i]
+        #         print '[%2d]song:%s\tartist:%s\talbum:%s' % (i+1,song['name'], song['artists'][0]['name'], song['album']['name'])
+        #     select_i = int(raw_input('Select One:'))
+        #     if select_i < 1 or select_i > len(result['songs']):
+        #         print 'error select'
+        #         return None
+        #     else:
+        #         song_id = result['songs'][select_i-1]['id']
         detail_url = 'http://music.163.com/api/song/detail?ids=[%d]' % song_id
         resp = urllib2.urlopen(detail_url)
         song_js = json.loads(resp.read())
@@ -233,5 +235,9 @@ def song_tlyric(music_id):
 if __name__ == '__main__':
     # print get_artist_albums({"id": 893259})
     # download_album_by_search('AKB48','/Users/book/Desktop/TS')
-    # search_song_by_name('AKB48')
-    print(song_lyric('30431375'))
+    song = search_song_by_name('成都 赵雷')
+    print("song!", song)
+    lyric = "/Users/book/Desktop/" + song['name'] + ".lyc"
+    with open(lyric, "w+") as f:
+        print(song_lyric(song['id']))
+        f.write(song_lyric(song['id']))
