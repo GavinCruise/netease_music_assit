@@ -10,6 +10,7 @@ import random
 import os
 import requests
 import sys
+import eyed3
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -232,12 +233,38 @@ def song_tlyric(music_id):
         print(e)
         return []
 
-if __name__ == '__main__':
-    # print get_artist_albums({"id": 893259})
-    # download_album_by_search('AKB48','/Users/book/Desktop/TS')
-    song = search_song_by_name('成都 赵雷')
-    print("song!", song)
-    lyric = "/Users/book/Desktop/" + song['name'] + ".lyc"
+
+def list_files(dir):
+    list_dirs = os.walk(dir)
+    for root, dirs, files in list_dirs:
+        for f in files:
+            if f == ".DS_Store":
+                continue
+            fullpath = os.path.join(root, f)
+            print f
+            music = eyed3.load(fullpath)
+            keyword = f
+            if music is not None and music.tag.artist != "" and music.tag.title != "":
+                keyword = music.tag.artist + " " + music.tag.title
+            save_lyric(keyword,os.path.dirname(fullpath))
+
+
+def save_lyric(f, path):
+    song = search_song_by_name(f)
+    lyric = path + "/" + song['name'] + ".lyc"
     with open(lyric, "w+") as f:
         print(song_lyric(song['id']))
         f.write(song_lyric(song['id']))
+
+if __name__ == '__main__':
+    # print get_artist_albums({"id": 893259})
+    # download_album_by_search('AKB48','/Users/book/Desktop/TS')
+    # song = search_song_by_name('成都 赵雷')
+    # print("song!", song)
+    # lyric = "/Users/book/Desktop/" + song['name'] + ".lyc"
+    # with open(lyric, "w+") as f:
+    #     print(song_lyric(song['id']))
+    #     f.write(song_lyric(song['id']))
+    list_files("/Volumes/Macinsh/Music/iTunes/Music/李健/")
+    # tag = eyed3.load("/Volumes/Macinsh/Music/iTunes/Music/李健/似水流年/远.mp3")
+    # print tag.tag.artist
